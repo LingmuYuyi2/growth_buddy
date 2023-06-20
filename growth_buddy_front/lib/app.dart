@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
+import 'screens/register.dart';
 import 'widgets/bottom_nav.dart';
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -24,8 +26,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  final _pageOptions = [
+  final List<Widget> _pageOptions = [
     HomeScreen(),
+    RegisterScreen(),
     // Add other screens here
   ];
 
