@@ -1,6 +1,6 @@
 {
-    "name": "growth_buddy",
-    "short_name": "growth_buddy",
+    "name": "growth_buddy_front",
+    "short_name": "growth_buddy_front",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
