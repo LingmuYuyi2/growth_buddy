@@ -4,7 +4,7 @@ class BottomNavigation extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
 
-  BottomNavigation({required this.selectedIndex, required this.onItemSelected});
+  const BottomNavigation({super.key, required this.selectedIndex, required this.onItemSelected});
 
   @override
   Widget build(BuildContext context) {

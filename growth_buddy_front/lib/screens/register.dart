@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../helpers/database_helper.dart';
+import '../models/record.dart';
 
 class RegisterScreen extends StatefulWidget {
-  RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
@@ -12,18 +15,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String comment = '';
   double selectedEffort = 1;
 
+  Future<void> _saveRecord() async {
+    final record = Record(
+      category: dropdownValue ?? '',
+      content: comment,
+      effort: selectedEffort,
+    );
+
+    final helper = DatabaseHelper.instance;
+    await helper.insertRecord(record);
+
+    // レコードの保存が完了した後の処理
+    _showSaveSuccessMessage();
+  }
+
+  void _showSaveSuccessMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('保存が完了しました'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: const Text('Register'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Category:'),
+            const Text('Category:'),
             DropdownButton<String>(
               value: dropdownValue,
               onChanged: (String? newValue) {
@@ -39,20 +64,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 );
               }).toList(),
             ),
-            SizedBox(height: 20),
-            Text('Comment:'),
+            const SizedBox(height: 20),
+            const Text('Comment:'),
             TextField(
               onChanged: (text) {
                 setState(() {
                   comment = text;
                 });
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter your comment here',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text('Effort: ${_getEffortLabel(selectedEffort)}'),
             Slider(
               value: selectedEffort,
@@ -65,12 +90,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 });
               },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Process your data here
-              },
-              child: Text('Submit'),
+              onPressed: _saveRecord,
+              child: const Text('Submit'),
             ),
           ],
         ),
