@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/register.dart';
+import 'screens/achieve_list.dart';
 import 'widgets/bottom_nav.dart';
 
 
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Widget> _pageOptions = [
     const HomeScreen(),
     const RegisterScreen(),
+    const AchieveListScreen(),
     // Add other screens here
   ];
 

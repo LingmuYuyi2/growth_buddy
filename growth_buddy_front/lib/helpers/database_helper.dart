@@ -61,13 +61,24 @@ class DatabaseHelper {
   Future<List<Record>> getRecords() async {
     final db = await instance.database;
     final List<Map<String, dynamic>> maps = await db.query(table);
+    print(maps);
     return List.generate(maps.length, (i) {
       return Record(
         id: maps[i][columnId],
         category: maps[i][columnCategory],
         content: maps[i][columnContent],
-        effort: maps[i][columnEffort],
+        effort: double.parse(maps[i][columnEffort]),
       );
     });
   }
+
+  Future<int> deleteRecord(int id) async {
+  final db = await instance.database;
+  return await db.delete(
+    table,
+    where: '$columnId = ?',
+    whereArgs: [id],
+  );
+}
+
 }
