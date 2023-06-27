@@ -55,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // レスポンスを処理します...
       if (response.statusCode == 200) {
         // If server returns an OK response, parse the JSON.
-        print('API response: ${response.body}'); // レスポンスをログに出力
+        // print('API response: ${response.body}'); // レスポンスをログに出力
         return response.body;
       } else {
         // If that response was not OK, throw an error.
@@ -136,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               future: apiResponseFuture,
               builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // ローディングインジケータを表示します
+                  return const CircularProgressIndicator(); // ローディングインジケータを表示します
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}'); // エラーメッセージを表示します
                 } else {
