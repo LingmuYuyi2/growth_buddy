@@ -1,4 +1,4 @@
-package com.example.growth_buddy_front
+package com.example.growth_buddy
 
 import io.flutter.embedding.android.FlutterActivity
 
