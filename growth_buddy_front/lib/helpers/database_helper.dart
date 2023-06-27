@@ -79,6 +79,13 @@ class DatabaseHelper {
     where: '$columnId = ?',
     whereArgs: [id],
   );
-}
+  }
+
+  Future<int> getRecordCount() async {
+    Database db = await instance.database;
+    var x = await db.rawQuery('SELECT COUNT (*) from records');
+    int? count = Sqflite.firstIntValue(x);
+    return count ?? 0;
+  }
 
 }

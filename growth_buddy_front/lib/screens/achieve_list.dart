@@ -39,7 +39,7 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
           }
           
           if (snapshot.hasError) {
-            print(snapshot);
+            // print(snapshot);
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           
