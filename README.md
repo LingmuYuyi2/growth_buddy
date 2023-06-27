@@ -17,3 +17,20 @@ vscodeで```flutter devices```を実行して、実機が認識されている�
 参考
 - https://next-k.site/blog/archives/2022/03/22/757
 - https://qiita.com/nonkapibara/items/d14c796ca69c8a4e58d2
+
+
+
+## API サーバの起動
+
+### 必要なライブラリのインストール
+
+```bash
+pip install -r requirements.txt
+```
+
+### サーバの起動
+```bash
+cd backend
+python manage.py runserver
+```
+
