@@ -18,6 +18,10 @@ class BottomNavigation extends StatelessWidget {
           icon: Icon(Icons.app_registration),
           label: 'Register',
         ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search),
+          label: 'Search',
+        ),
         // Add more navigation items as needed
       ],
       currentIndex: selectedIndex,
