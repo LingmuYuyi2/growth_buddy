@@ -3,10 +3,9 @@ import '../helpers/database_helper.dart';
 import '../models/record.dart';
 
 class AchieveListScreen extends StatefulWidget {
-  const AchieveListScreen({super.key});
+  const AchieveListScreen({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _AchieveListScreenState createState() => _AchieveListScreenState();
 }
 
@@ -25,6 +24,39 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
     });
   }
 
+  String getEffortText(double effort) {
+    if (effort == 1.0) {
+      return 'ちょっと';
+    } else if (effort == 2.0) {
+      return 'まあまあ';
+    } else if (effort == 3.0) {
+      return '普通';
+    } else if (effort == 4.0) {
+      return 'かなり';
+    } else if (effort == 5.0) {
+      return 'とても';
+    } else {
+      return '不明';
+    }
+  }
+
+  Color getCategoryColor(String category) {
+    switch (category) {
+      case '勉強':
+        return Colors.orange;
+      case '趣味':
+        return Colors.purpleAccent;
+      case '家事':
+        return Colors.red;
+      case 'サークル':
+        return Colors.lightBlue;
+      case '就活':
+        return Colors.green;
+      default:
+        return Colors.black;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,26 +69,61 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (snapshot.hasError) {
-            // print(snapshot);
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-          
+
           if (!snapshot.hasData) {
             return const Center(child: Text('No data'));
           }
 
-          return ListView.builder(
+          return ListView.separated(
             itemCount: snapshot.data!.length,
+            separatorBuilder: (BuildContext context, int index) {
+              return Divider(
+                color: Colors.grey.withOpacity(0.5),
+                thickness: 1.0,
+              );
+            },
             itemBuilder: (BuildContext context, int index) {
               Record record = snapshot.data![snapshot.data!.length - 1 - index];
 
               return ListTile(
-                title: Text('Category: ${record.category}'),
-                subtitle: Text('Comment: ${record.content}\nEffort: ${record.effort.toString()}'),
+                title: RichText(
+                  text: TextSpan(
+                    text: 'Category: ',
+                    style: TextStyle(color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: record.category,
+                        style: TextStyle(
+                          color: getCategoryColor(record.category),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Effort: ${getEffortText(record.effort)}'),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Container(
+                        color: Colors.grey.withOpacity(0.2),
+                        padding: EdgeInsets.all(10.0),
+                        child: Text(record.content),
+                      ),
+                    ),
+                  ],
+                ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.delete),
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.grey,
+                  ),
                   onPressed: () async {
                     await DatabaseHelper.instance.deleteRecord(record.id!);
                     _updateRecordList();
