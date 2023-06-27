@@ -8,6 +8,7 @@ import dotenv
 import openai
 import replicate
 import base64
+from io import BytesIO
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
@@ -20,10 +21,15 @@ class MyView(APIView):
         
         # リクエストデータを抽出
         texts = request.data.get('texts')
-        image = request.data.get('image')
+        #image = request.data.get('image')
+        image_base64 = request.data.get('image')
+
+        # base64形式の画像データをバイナリにデコード
+        image_bytes = base64.b64decode(image_base64)
+        image = BytesIO(image_bytes)
         
         messages = [
-            {"role": "system", "content": "以下のテキスト群のトピックを英単語5つコンマ区切りで生成してください。"},
+            {"role": "system", "content": "以下のテキスト群から、イラスト化した際にわかりやすいキーワードを英単語で1つ生成してください。"},
             {"role": "user", "content": "\n".join(texts)}
         ]
 
@@ -31,16 +37,17 @@ class MyView(APIView):
         gpt_response = openai.ChatCompletion.create(\
                 model="gpt-3.5-turbo",
                 messages=messages,
-                temperature=0.3,
+                temperature=0.8,
             )
         
         topics = gpt_response['choices'][0]['message']['content']
         
-        image = open(image, "rb")
+        #image = open(image, "rb")
         
         input = {
             "image": image,
-            "prompt": topics,
+            "prompt": "Egg character with " + topics + ".",
+            "prompt_strength": 0.9,
         }
         
         # img2imgAPIへのリクエスト
@@ -55,9 +62,6 @@ class MyView(APIView):
         image_data_base64 = base64.b64encode(image_data).decode()
         
         content_type = response.headers.get('content-type')
-        
-        with open('output.jpg', 'wb') as out_file:
-            out_file.write(image_data)
 
         # レスポンスを返す
-        return Response({'image': image_data_base64}, status=status.HTTP_200_OK, content_type=content_type)
+        return Response({'image': image_data_base64, "topic": topics}, status=status.HTTP_200_OK, content_type=content_type)
