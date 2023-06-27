@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../helpers/database_helper.dart';
 import '../models/record.dart';
 import 'package:http/http.dart' as http;
@@ -49,10 +52,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
-      // APIにアクセスします。
-      var response = await http.get(Uri.parse('https://umayadia-apisample.azurewebsites.net/api/persons/Shakespeare'));
+      final url = Uri.parse('http://10.231.137.154:8000/generate_image/');
+
+      // リクエストヘッダーの設定
+      Map<String, String> headers = {'Content-Type': 'application/json'};
+
+      // テキストの取得
+      List<String> texts = await _getTextsFromDatabase();
+
+      // 画像の読み込み
+      String image = await _getImageFromAssets();
+
+      // リクエストボディの設定
+      Map<String, dynamic> requestBody = {
+        'texts': texts,
+        'image': image,
+      };
       
-      // レスポンスを処理します...
+      // POSTリクエストの送信
+      var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
+      print(response);
+
       if (response.statusCode == 200) {
         // If server returns an OK response, parse the JSON.
         // print('API response: ${response.body}'); // レスポンスをログに出力
@@ -63,6 +83,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
     return 'Threshold not reached';
+  }
+
+  Future<List<String>> _getTextsFromDatabase() async {
+    // データベースからテキストを取得する処理を実装する
+    // 例: テキストのリストをデータベースから取得する
+    final helper = DatabaseHelper.instance;
+    List<String> texts = await helper.getTexts();
+    return texts;
+  }
+
+  Future<String> _getImageFromAssets() async {
+    // アセットから画像を読み込む処理を実装する
+    // 例: assets内の画像ファイルをバイトデータに変換し、Base64エンコードする
+    ByteData imageBytes = await rootBundle.load('assets/images/niwatori_hiyoko_koushin.png');
+    List<int> byteList = imageBytes.buffer.asUint8List();
+    String base64Image = base64Encode(byteList);
+    return base64Image;
   }
 
   void _showSaveSuccessMessage() {

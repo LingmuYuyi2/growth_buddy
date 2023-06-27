@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   final List<Widget> _pageOptions = [
-    HomeScreen(),
+    const HomeScreen(),
     const RegisterScreen(),
     const AchieveListScreen(),
     // Add other screens here

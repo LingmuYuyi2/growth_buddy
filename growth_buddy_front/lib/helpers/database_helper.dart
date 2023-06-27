@@ -88,4 +88,12 @@ class DatabaseHelper {
     return count ?? 0;
   }
 
+  Future<List<String>> getTexts() async {
+  final db = await instance.database;
+  final List<Map<String, dynamic>> maps = await db.query(table, columns: [columnContent]);
+  return List.generate(maps.length, (i) {
+    return maps[i][columnContent] as String;
+  });
+  }
+
 }
