@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../helpers/database_helper.dart';
 import '../models/record.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   int threshold = 1;
   String apiResponse = ''; // APIからのレスポンスを保持する
   Future<String>? apiResponseFuture;
+  DateTime? selectedDate; // 日付を保持
+  
 
   Future<void> _saveRecordAndAccessAPI() async {
     await _saveRecord();
@@ -29,10 +32,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _saveRecord() async {
     final record = Record(
-      category: dropdownValue ?? '',
-      content: comment,
-      effort: selectedEffort,
-    );
+  category: dropdownValue ?? '',
+  content: comment,
+  effort: selectedEffort,
+  date: selectedDate, // 直接代入
+);
+
 
     final helper = DatabaseHelper.instance;
     await helper.insertRecord(record);
@@ -73,6 +78,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  
+  
+
+  Future<void> _selectDate(BuildContext context) async {
+  final DateTime? pickedDate = await showDatePicker(
+    context: context,
+    initialDate: selectedDate != null ? DateFormat('yyyy-MM-dd').parse(selectedDate!) : DateTime.now(),
+    firstDate: DateTime.now().subtract(Duration(days: 1)),
+    lastDate: DateTime.now(),
+  );
+
+  if (pickedDate != null) {
+    setState(() {
+      selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate); // 日付を文字列に変換して保存
+    });
+  }
+}
+ 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,6 +125,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 );
               }).toList(),
             ),
+            const Text('date:'),
+            ElevatedButton(
+              onPressed: () => _selectDate(context),
+              child: Text('Select Date'),
+            ),
+         
+            Text(DateFormat.yMd().format(selectedDate)),
             const SizedBox(height: 20),
             const Text('Comment:'),
             TextField(
@@ -148,6 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     )
     );
   }
+
 
   String _getEffortLabel(double value) {
     switch (value.toInt()) {
