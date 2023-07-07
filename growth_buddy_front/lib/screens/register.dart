@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../helpers/database_helper.dart';
 import '../models/record.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   int threshold = 1;
   String apiResponse = ''; // APIからのレスポンスを保持する
   Future<String>? apiResponseFuture;
+  DateTime selectedDate = DateTime.now(); // 日付を保持
+  
 
   Future<void> _saveRecordAndAccessAPI() async {
     await _saveRecord();
@@ -32,7 +35,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       category: dropdownValue ?? '',
       content: comment,
       effort: selectedEffort,
+      date: DateFormat('yyyy-MM-dd').format(selectedDate), // 直接代入
     );
+
 
     final helper = DatabaseHelper.instance;
     await helper.insertRecord(record);
@@ -73,6 +78,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  
+  
+
+  Future<void> _selectDate(BuildContext context) async {
+  final DateTime? pickedDate = await showDatePicker(
+    context: context,
+    initialDate: selectedDate,
+    firstDate: DateTime.now().subtract(const Duration(days: 1)),
+    lastDate: DateTime.now(),
+  );
+
+  if (pickedDate != null) {
+    setState(() {
+      selectedDate = pickedDate; // 日付を文字列に変換して保存
+    });
+  }
+}
+ 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +124,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Text(value),
                 );
               }).toList(),
+            ),
+            TextField(
+              controller: TextEditingController(text: DateFormat('yyyy/M/d').format(selectedDate)),
+              onTap: () => _selectDate(context),
+              readOnly: true,  // ユーザーが直接入力できないようにします
+              decoration: const InputDecoration(
+                labelText: "Date",
+                suffixIcon: Icon(Icons.calendar_today),
+              ),
             ),
             const SizedBox(height: 20),
             const Text('Comment:'),
@@ -148,6 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     )
     );
   }
+
 
   String _getEffortLabel(double value) {
     switch (value.toInt()) {

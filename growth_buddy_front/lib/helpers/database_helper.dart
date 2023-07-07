@@ -12,6 +12,7 @@ class DatabaseHelper {
   static const columnCategory = 'category';
   static const columnContent = 'content';
   static const columnEffort = 'effort';
+  static const columnDate = 'date';
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -42,7 +43,8 @@ class DatabaseHelper {
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnCategory TEXT NOT NULL,
         $columnContent TEXT NOT NULL,
-        $columnEffort TEXT NOT NULL
+        $columnEffort TEXT NOT NULL,
+        $columnDate TEXT NOT NULL
       )
     ''');
   }
@@ -54,6 +56,7 @@ class DatabaseHelper {
       columnCategory: record.category,
       columnContent: record.content,
       columnEffort: record.effort,
+      columnDate: record.date,
     };
     return await db.insert(table, recordMap);
   }
@@ -68,6 +71,7 @@ class DatabaseHelper {
         category: maps[i][columnCategory],
         content: maps[i][columnContent],
         effort: double.parse(maps[i][columnEffort]),
+        date: maps[i][columnDate],
       );
     });
   }
