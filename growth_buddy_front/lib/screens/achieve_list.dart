@@ -72,14 +72,14 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
           if (!snapshot.hasData) {
             return const Center(child: Text('No data'));
           }
 
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          
           return ListView.separated(
             itemCount: snapshot.data!.length,
             separatorBuilder: (BuildContext context, int index) {
@@ -111,6 +111,7 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Effort: ${getEffortText(record.effort)}'),
+                    Text('Date: ${record.date.toString()}'), // 日付を表示する部分
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10.0),
                       child: Container(
@@ -132,10 +133,10 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
                   },
                 ),
               );
-            },
+            }
           );
-        },
-      ),
+         })
     );
   }
 }
+              
