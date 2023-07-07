@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
 import '../models/record.dart';
@@ -93,7 +95,7 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
                 title: RichText(
                   text: TextSpan(
                     text: 'Category: ',
-                    style: TextStyle(color: Colors.black),
+                    style: const TextStyle(color: Colors.black),
                     children: [
                       TextSpan(
                         text: record.category,
@@ -113,14 +115,14 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
                       borderRadius: BorderRadius.circular(10.0),
                       child: Container(
                         color: Colors.grey.withOpacity(0.2),
-                        padding: EdgeInsets.all(10.0),
+                        padding: const EdgeInsets.all(10.0),
                         child: Text(record.content),
                       ),
                     ),
                   ],
                 ),
                 trailing: IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.delete,
                     color: Colors.grey,
                   ),
