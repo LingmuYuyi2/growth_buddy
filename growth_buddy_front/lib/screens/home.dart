@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       List<String> texts = await _getTextsFromDatabase();
       // 画像の読み込み
       // TODO: 最新の画像を読み込むようにする
-      String image = await _getImageFromAssets();
+      String image = await _getImageData();
 
       // リクエストボディの設定
       Map<String, dynamic> requestBody = {
@@ -134,9 +134,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return texts;
   }
 
-  Future<String> _getImageFromAssets() async {
-    ByteData imageBytes = await rootBundle.load('assets/images/niwatori_hiyoko_koushin.png');
-    List<int> byteList = imageBytes.buffer.asUint8List();
+  Future<String> _getImageData() async {
+    List<int> byteList;
+    if (_imageFile == null) {
+      print("assets");
+      ByteData imageBytes = await rootBundle.load('assets/images/niwatori_hiyoko_koushin.png');
+      byteList = imageBytes.buffer.asUint8List();
+    } else {
+      print("non assets");
+      byteList = await _imageFile!.readAsBytes();
+    }
     String base64Image = base64Encode(byteList);
     return base64Image;
   }
