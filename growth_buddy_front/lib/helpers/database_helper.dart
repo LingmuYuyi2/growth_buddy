@@ -1,18 +1,24 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/record.dart';
+import '../models/counter.dart';
 
 class DatabaseHelper {
   static const _databaseName = 'my_database.db';
   static const _databaseVersion = 1;
 
   static const table = 'records';
+  static const counterTable = 'counter';
 
   static const columnId = 'id';
   static const columnCategory = 'category';
   static const columnContent = 'content';
   static const columnEffort = 'effort';
   static const columnDate = 'date';
+
+  static const columnCounterId = 'id';
+  static const columnCount = 'count';
+
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -47,6 +53,14 @@ class DatabaseHelper {
         $columnDate TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE $counterTable (
+        $columnCounterId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnCount INTEGER NOT NULL
+      )
+    ''');
+    await db.insert(counterTable, {'count': 0});  // 初期値として 0 を挿入
   }
 
   Future<int> insertRecord(Record record) async {
@@ -92,4 +106,35 @@ class DatabaseHelper {
     return count ?? 0;
   }
 
+  Future<List<String>> getTexts({int? limit, String orderBy = 'id DESC'}) async {
+    final db = await instance.database;
+    limit ??= await getCount();
+    final List<Map<String, dynamic>> maps = await db.query(
+      table,
+      columns: [columnContent],
+      limit: limit,
+      orderBy: orderBy,
+    );
+    return List.generate(maps.length, (i) {
+      return maps[i][columnContent] as String;
+    });
+  }
+
+  Future<int> getCount() async {
+    Database db = await instance.database;
+    var x = await db.rawQuery('SELECT COUNT from $counterTable WHERE id = 1');
+    int? count = Sqflite.firstIntValue(x);
+    return count ?? 0;
+  }
+
+  Future<void> incrementCount() async {
+    Database db = await instance.database;
+    int currentCount = await getCount();
+    await db.update(counterTable, {'count': currentCount + 1}, where: 'id = ?', whereArgs: [1]);
+  }
+
+  Future<void> resetCount() async {
+    Database db = await instance.database;
+    await db.update(counterTable, {'count': 0}, where: 'id = ?', whereArgs: [1]);
+  }
 }

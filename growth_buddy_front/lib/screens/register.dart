@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../helpers/database_helper.dart';
 import '../models/record.dart';
-import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -22,14 +21,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   DateTime selectedDate = DateTime.now(); // 日付を保持
   
 
-  Future<void> _saveRecordAndAccessAPI() async {
-    await _saveRecord();
-    apiResponseFuture = _accessAPIIfThresholdReached();
-    setState(() {
-      apiResponseFuture = _accessAPIIfThresholdReached();
-    });
-  }
-
   Future<void> _saveRecord() async {
     final record = Record(
       category: dropdownValue ?? '',
@@ -41,35 +32,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final helper = DatabaseHelper.instance;
     await helper.insertRecord(record);
+    await helper.incrementCount();
 
     // レコードの保存が完了した後の処理
     _showSaveSuccessMessage();
   }
-
-  Future<String> _accessAPIIfThresholdReached() async {
-    final helper = DatabaseHelper.instance;
-
-    // レコードの総数を確認します。
-    int count = await helper.getRecordCount();
-    
-    // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
-    if (count >= threshold) {
-      // APIにアクセスします。
-      var response = await http.get(Uri.parse('https://umayadia-apisample.azurewebsites.net/api/persons/Shakespeare'));
-      
-      // レスポンスを処理します...
-      if (response.statusCode == 200) {
-        // If server returns an OK response, parse the JSON.
-        // print('API response: ${response.body}'); // レスポンスをログに出力
-        return response.body;
-      } else {
-        // If that response was not OK, throw an error.
-        throw Exception('Failed to load data from API');
-      }
-    }
-    return 'Threshold not reached';
-  }
-
+ 
   void _showSaveSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -106,7 +74,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const Text('Category:'),
@@ -162,23 +131,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _saveRecordAndAccessAPI, // ボタンを押したときに_saveRecordAndAccessAPIを実行します
+              onPressed: _saveRecord,
               child: const Text('Submit'),
             ),
             const SizedBox(height: 20),
-            FutureBuilder<String>(
-              future: apiResponseFuture,
-              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // ローディングインジケータを表示します
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}'); // エラーメッセージを表示します
-                } else {
-                  return Text('Response: ${snapshot.data}'); // レスポンスを表示します
-                }
-              },
-          )],
+          ],
       ),
+        )
     )
     );
   }
