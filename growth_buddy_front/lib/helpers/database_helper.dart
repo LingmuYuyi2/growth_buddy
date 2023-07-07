@@ -64,7 +64,7 @@ class DatabaseHelper {
   Future<List<Record>> getRecords() async {
     final db = await instance.database;
     final List<Map<String, dynamic>> maps = await db.query(table);
-    print(maps);
+    // print(maps);
     return List.generate(maps.length, (i) {
       return Record(
         id: maps[i][columnId],
