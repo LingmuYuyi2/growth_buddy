@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'dart:io';
 import 'dart:convert';
@@ -95,7 +95,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<String> _accessAPIIfThresholdReached() async {
     final helper = DatabaseHelper.instance;
 
-    int count = await helper.getRecordCount();
+    int count = await helper.getCount();
+    print(count);
     
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
@@ -108,7 +109,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       // テキストの取得
       List<String> texts = await _getTextsFromDatabase();
       // 画像の読み込み
-      // TODO: 最新の画像を読み込むようにする
       String image = await _getImageData();
 
       // リクエストボディの設定
@@ -121,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       // var response = await http.get(url);
       var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
       // print(response.body);
+      print(texts);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -130,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         var imageBytes = base64Decode(image);
         await _writeImageDataToFile(imageBytes);
         // print("finish whiteImage");
+        await helper.resetCount();
         return image;
       } else {
         // If that response was not OK, throw an error.
@@ -217,10 +219,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // TODO: 閾値を設定してそれによる処理の分岐をつける
           String result = await _accessAPIIfThresholdReached();  // ボタンが押されたときにAPIを呼び出す
-          if (result != 'Threshold not reached') {
-            await _loadSavedImageFile(forceUpdate: true);  // その後、画像を再ロードする
+          if (result == 'Threshold not reached') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('まだ変身できないようです...'),
+              ),
+            );
+          } else {
+            await _loadSavedImageFile(forceUpdate: true);
           }
         },
         label: const Text('変身'),

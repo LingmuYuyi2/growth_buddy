@@ -24,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final helper = DatabaseHelper.instance;
     await helper.insertRecord(record);
+    await helper.incrementCount();
 
     // レコードの保存が完了した後の処理
     _showSaveSuccessMessage();
