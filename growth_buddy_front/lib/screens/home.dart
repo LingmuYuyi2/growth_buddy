@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<Offset> _animation;
   File? _imageFile;
-  int threshold = 1;
+  int threshold = 10;
   String apiResponse = '';
   Future<String>? apiResponseFuture;
 
@@ -33,10 +33,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       vsync: this,
     );
 
-    _animation = Tween<Offset>(
-      begin: const Offset(0.2, 0),
-      end: const Offset(0, 0),
+    _animation = TweenSequence<Offset>(
+      [
+        TweenSequenceItem<Offset>(
+          tween: Tween<Offset>(
+            begin: const Offset(0, 0),
+            end: const Offset(-0.1, 0),
+          ),
+          weight: 0.33,
+        ),
+        TweenSequenceItem<Offset>(
+          tween: Tween<Offset>(
+            begin: const Offset(-0.1, 0),
+            end: const Offset(0.1, 0),
+          ),
+          weight: 0.33,
+        ),
+        TweenSequenceItem<Offset>(
+          tween: Tween<Offset>(
+            begin: const Offset(0.1, 0),
+            end: const Offset(0, 0),
+          ),
+          weight: 0.33,
+        ),
+      ],
     ).animate(_animationController);
+
 
     _loadSavedImageFile();
   }
