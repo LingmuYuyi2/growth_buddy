@@ -44,7 +44,7 @@ class DatabaseHelper {
         $columnCategory TEXT NOT NULL,
         $columnContent TEXT NOT NULL,
         $columnEffort TEXT NOT NULL,
-        $columnDate DATETIME NOT NULL
+        $columnDate TEXT NOT NULL
       )
     ''');
   }
