@@ -65,3 +65,24 @@ class MyView(APIView):
 
         # レスポンスを返す
         return Response({'image': image_data_base64, "topic": topics}, status=status.HTTP_200_OK, content_type=content_type)
+
+
+class SampleImageView(APIView):
+    def post(self, request, *args, **kwargs):
+        url = f"https://dog.ceo/api/breeds/image/random"
+
+        response = requests.get(url)
+        response_data = response.json()
+
+        if response.status_code == 200 and response_data['status'] == 'success':
+            image_url = response_data['message']
+            image_response = requests.get(image_url)
+
+            # Convert the image bytes to base64
+            image_data_base64 = base64.b64encode(image_response.content).decode('utf-8')
+            content_type = 'image/jpg'
+
+            return Response({'image': image_data_base64}, status=status.HTTP_200_OK, content_type=content_type)
+        else:
+            return Response({'error': 'Could not retrieve image'}, status=status.HTTP_400_BAD_REQUEST)
+
