@@ -31,22 +31,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  final List<Widget> _pageOptions = [
-    const HomeScreen(),
-    const RegisterScreen(),
-    const AchieveListScreen(),
+  final List<Function> _pageOptions = [
+    () => HomeScreen(key: UniqueKey()),
+    () => const RegisterScreen(),
+    () => const AchieveListScreen(),
     // Add other screens here
   ];
-   
+  
+  Widget _selectedPage = HomeScreen(key: UniqueKey());
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pageOptions[_selectedIndex],
+      body: _selectedPage,
       bottomNavigationBar: BottomNavigation(
         selectedIndex: _selectedIndex,
         onItemSelected: (index) {
           setState(() {
             _selectedIndex = index;
+            _selectedPage = _pageOptions[_selectedIndex]();
           });
         },
       ),

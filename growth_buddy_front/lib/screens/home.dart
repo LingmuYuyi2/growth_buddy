@@ -1,6 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,12 +41,29 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _animationController.forward();
   }
 
+  Future<File?> _getSavedImageFile({bool forceUpdate = false}) async {
+    if (forceUpdate) {
+      setState(() {});  // 状態の更新をトリガーしてウィジェットを再構築します
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/myImage.png';
+    final file = File(filePath);
+    bool exist = await file.exists();  // ファイルが存在するかどうかを確認
+    if (exist) {
+      return file;
+    } else {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: const Text('Home Screen'),
+
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -64,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            Align(
+             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 80.0),
@@ -72,13 +92,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   onTap: startAnimation,
                   child: SlideTransition(
                     position: _animation,
-                    child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                    // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                    child: FutureBuilder<File?>(
+                      future: _getSavedImageFile(),  // 保存されている画像ファイルを取得
+                      builder: (BuildContext context, AsyncSnapshot<File?> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();  // ローディング表示
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else {
+                          File? imageFile = snapshot.data;
+                          if (imageFile != null) {
+                            // 保存されている画像が存在する場合は、その画像を表示
+                            return SlideTransition(
+                              position: _animation,
+                              child: Image.file(imageFile),
+                            );
+                          } else {
+                            // 画像が存在しない場合は、デフォルトの画像を表示
+                            return SlideTransition(
+                              position: _animation,
+                              child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                            );
+                          }
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _getSavedImageFile(forceUpdate: true);  // 更新ボタンが押されたときに_getSavedImageFileを再実行
+        },
+        label: Text('変身'),
+        icon: Icon(Icons.transform),
       ),
     );
   }

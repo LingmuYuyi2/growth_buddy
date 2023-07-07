@@ -1,4 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,7 +57,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
-      final url = Uri.parse('http://10.231.137.154:8000/generate_image/');
+      final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
+      // final url = Uri.parse('http://127.0.0.1:8000/healthz/');
 
       // リクエストヘッダーの設定
       Map<String, String> headers = {'Content-Type': 'application/json'};
@@ -68,21 +74,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'texts': texts,
         'image': image,
       };
-      
+
       // POSTリクエストの送信
+      // var response = await http.get(url);
       var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
-      print(response);
+      print(response.body);
 
       if (response.statusCode == 200) {
-        // If server returns an OK response, parse the JSON.
-        // print('API response: ${response.body}'); // レスポンスをログに出力
-        return response.body;
+        var data = jsonDecode(response.body);
+        var image = data['image'];
+    
+        // return data; // return the parsed data
+        var imageBytes = base64Decode(image);
+        await _writeImageDataToFile(imageBytes);
+        print("finish whiteImage");
+        return image;
       } else {
         // If that response was not OK, throw an error.
         throw Exception('Failed to load data from API');
       }
     }
     return 'Threshold not reached';
+  }
+
+  Future<File> _writeImageDataToFile(Uint8List data) async {
+    final directory = await getApplicationDocumentsDirectory(); // アプリケーションのドキュメントディレクトリを取得します。
+    final path = directory.path; // ディレクトリのパスを取得します。
+    // print(path);
+    final filePath = '$path/myImage.png'; // 保存したい画像のパスを作成します。
+    final file = File(filePath);
+    print(file);
+    return file.writeAsBytes(data); // ファイルにデータを書き込みます。
   }
 
   Future<List<String>> _getTextsFromDatabase() async {
@@ -173,13 +195,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
               future: apiResponseFuture,
               builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // ローディングインジケータを表示します
+                  // The future is still running, so show a loading indicator.
+                  return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}'); // エラーメッセージを表示します
+                  return Text('Error: ${snapshot.error}');
                 } else {
-                  return Text('Response: ${snapshot.data}'); // レスポンスを表示します
+                  // The future completed successfully.
+                  String? base64Image = snapshot.data;
+
+                  if (base64Image != null && base64Image != 'Threshold not reached') {
+                    Uint8List imageBytes = base64Decode(base64Image);
+
+                    return Image.memory(imageBytes, fit: BoxFit.fill);
+                  } else {
+                    return const Text('Threshold not reached or no image data');
+                  }
                 }
               },
+            // FutureBuilder<String>(
+            //   future: apiResponseFuture,
+            //   builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return const CircularProgressIndicator(); // ローディングインジケータを表示します
+            //     } else if (snapshot.hasError) {
+            //       return Text('Error: ${snapshot.error}'); // エラーメッセージを表示します
+            //     } else {
+            //       return Text('Response: ${snapshot.data}'); // レスポンスを表示します
+            //     }
+            //   },
           )],
       ),
     )
