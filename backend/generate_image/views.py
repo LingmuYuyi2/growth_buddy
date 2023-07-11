@@ -6,66 +6,114 @@ from rest_framework.views import APIView
 import os
 import dotenv
 import openai
-import replicate
 import base64
 from io import BytesIO
+from PIL import Image
+from rembg import remove
+
+
+from .modules.get_prompt import get_position_and_prompt
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
-API_KEY_GPT = os.environ.get("API_KEY_GPT")
-REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+def replace_transparency_with_color_in_memory(image_data, color=(0, 255, 0, 255)):
+
+    # バイナリデータから画像を読み込む
+    img = Image.open(image_data)
+    img = img.convert("RGBA")
+    data = img.getdata()
+
+    new_data = []
+    for item in data:
+        # change all transparent pixels to the given color
+        if item[3] == 0:
+            new_data.append(color)
+        else:
+            new_data.append(item)
+            
+    img.putdata(new_data)
+    
+    # 画像をバイナリデータとして保存する
+    byte_arr = BytesIO()
+    img.save(byte_arr, format='PNG')
+    return BytesIO(byte_arr.getvalue())
+
+def remove_background(image_data_base64):
+    # Base64形式のデータをバイナリに変換
+    image_data = base64.b64decode(image_data_base64)
+
+    # バイナリデータをPIL Imageに変換
+    img = Image.open(BytesIO(image_data))
+
+    # バックグラウンドを削除
+    img_no_bg = remove(img)
+
+    # PIL Imageをバイナリデータに変換
+    byte_arr = BytesIO()
+    img_no_bg.save(byte_arr, format='PNG')
+    encoded_image = base64.b64encode(byte_arr.getvalue())
+
+    return encoded_image
+    
 
 class MyView(APIView):
     def post(self, request, *args, **kwargs):
-        openai.api_key = API_KEY_GPT
+        openai.api_key = OPENAI_API_KEY
         
         # リクエストデータを抽出
-        texts = request.data.get('texts')
-        #image = request.data.get('image')
+        info_list = request.data.get('info', [])
+        content_list = [item.get('content', '') for item in info_list]
+        effort_list = [item.get('effort', 0) for item in info_list]
+        position_before = request.data.get('position')
         image_base64 = request.data.get('image')
 
         # base64形式の画像データをバイナリにデコード
         image_bytes = base64.b64decode(image_base64)
         image = BytesIO(image_bytes)
         
-        messages = [
-            {"role": "system", "content": "以下のテキスト群から、イラスト化した際にわかりやすいキーワードを英単語で1つ生成してください。"},
-            {"role": "user", "content": "\n".join(texts)}
-        ]
-
-        # GPT APIへのリクエスト
-        gpt_response = openai.ChatCompletion.create(\
-                model="gpt-3.5-turbo",
-                messages=messages,
-                temperature=0.8,
-            )
+        image = replace_transparency_with_color_in_memory(image)
         
-        topics = gpt_response['choices'][0]['message']['content']
+        position, prompt = get_position_and_prompt(content_list, effort_list, position_before)
         
-        #image = open(image, "rb")
+        mask_path = os.path.dirname(__file__) + '/modules/figures/mask' + str(position) + ".png"
         
-        input = {
-            "image": image,
-            "prompt": "Egg character with " + topics + ".",
-            "prompt_strength": 0.9,
+        with open(mask_path, 'rb') as mask_file:
+            files = {
+                'image': image,
+                'mask': mask_file.read(),
+            }
+            
+        data = {
+            'prompt': prompt,
+            'n': 1,
+            'size': '1024x1024',
+            "response_format": "b64_json"
         }
+
+        # ヘッダーを作成
+        headers = {
+            'Authorization': 'Bearer ' + OPENAI_API_KEY
+        }
+
+        # POSTリクエストを作成
+        dalle2_response = requests.post(
+            'https://api.openai.com/v1/images/edits',
+            headers=headers,
+            files=files,
+            data=data
+        )
         
-        # img2imgAPIへのリクエスト
-        custom_api_response = replicate.run(
-            "stability-ai/stable-diffusion-img2img:15a3689ee13b0d2616e98820eca31d4c3abcd36672df6afce5cb6feb1d66087d",
-            input= input
-            )
+        image_data_base64 = dalle2_response.json()["data"][0]['b64_json']     
         
-        response = requests.get(custom_api_response[0])
-        image_data = response.content
-        # 画像データをBase64形式にエンコードする
-        image_data_base64 = base64.b64encode(image_data).decode()
+        image_data_base64 = remove_background(image_data_base64)   
         
-        content_type = response.headers.get('content-type')
+        content_type = dalle2_response.headers.get('content-type')
 
         # レスポンスを返す
-        return Response({'image': image_data_base64, "topic": topics}, status=status.HTTP_200_OK, content_type=content_type)
 
+        return Response({'image': image_data_base64, "changed_position": str(position)}, status=status.HTTP_200_OK, content_type=content_type)
 
 class SampleImageView(APIView):
     def post(self, request, *args, **kwargs):
@@ -85,4 +133,3 @@ class SampleImageView(APIView):
             return Response({'image': image_data_base64}, status=status.HTTP_200_OK, content_type=content_type)
         else:
             return Response({'error': 'Could not retrieve image'}, status=status.HTTP_400_BAD_REQUEST)
-
