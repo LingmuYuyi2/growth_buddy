@@ -97,12 +97,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final helper = DatabaseHelper.instance;
 
     int count = await helper.getCount();
-    print(count);
+    // print(count);
     
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
-      // final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
-      final url = Uri.parse('http://127.0.0.1:8000/sample_image/');
+      final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
+      // final url = Uri.parse('http://127.0.0.1:8000/sample_image/');
       // final url = Uri.parse('http://127.0.0.1:8000/healthz/');
 
       // リクエストヘッダーの設定
@@ -125,12 +125,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       // var response = await http.get(url);
       var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
       // print(response.body);
-      print(lastUpdate);
+      // print(lastUpdate);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         var image = data['image'];
-        var lastUpdate = data['updated']; // backendの属性名による
+        var lastUpdate = data['changed_position']; // backendの属性名による
     
         // return data; // return the parsed data
         var imageBytes = base64Decode(image);
@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     List<int> byteList;
     if (_imageFile == null) {
       print("assets");
-      ByteData imageBytes = await rootBundle.load('assets/images/niwatori_hiyoko_koushin.png');
+      ByteData imageBytes = await rootBundle.load('assets/images/basecat.png');
       byteList = imageBytes.buffer.asUint8List();
     } else {
       print("non assets");
@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     position: _animation,
                     // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
                     // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/niwatori_hiyoko_koushin.png', key: UniqueKey()),
+                    child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/basecat.png', key: UniqueKey()),
                   ),
                 ),
               ),
