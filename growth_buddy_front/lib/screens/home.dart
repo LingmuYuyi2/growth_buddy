@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   String apiResponse = '';
   Future<String>? apiResponseFuture;
 
+  int keikenchi = 0;
 
   @override
   void initState() {
@@ -63,6 +64,50 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     _loadSavedImageFile();
   }
+
+  Widget _buildExperienceWidget() {
+  return FutureBuilder<int>(
+    future: getExperience(),
+    builder: (context, snapshot) {
+      if (snapshot.hasData) {
+        int experience = snapshot.data!;
+        int level = experience ~/ 150 + 1;
+        int nextlevel = 150 - (experience % 150);
+        return Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+              color: Colors.amber,
+              width: 4.0,
+            ),
+            color: Colors.white, // 中身の色を白に設定
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            '現在のレベル: $level\n次のレベルまであと: $nextlevel',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      } else if (snapshot.hasError) {
+        return const Text('経験値の取得に失敗しました');
+      } else {
+        return const Text('経験値を取得中...');
+      }
+    },
+  );
+}
+
+
 
   @override
   void dispose() {
@@ -184,7 +229,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return base64Image;
   }
 
-  @override
+  Future<int> getExperience() async {
+    final helper = DatabaseHelper.instance;
+    int experience = await helper.getExperience();
+    print(experience);
+    return experience;
+  }
+
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -203,13 +255,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           children: [
             Positioned(
               bottom: 20.0,
-              right: 20.0,
+              left: 20.0,
               child: Transform.scale(
                 scale: 1.5,
                 child: Image.asset(
                   'assets/images/inugoya.png',
                 ),
               ),
+            ),
+            Positioned(
+              top: 50.0,
+              left: 20.0,
+              child: _buildExperienceWidget(), // 経験値を表示するウィジェットを配置
             ),
              Align(
               alignment: Alignment.bottomCenter,
