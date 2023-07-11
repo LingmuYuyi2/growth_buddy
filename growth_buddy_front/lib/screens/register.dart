@@ -34,6 +34,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     await helper.insertRecord(record);
     await helper.incrementCount();
 
+    //　経験値を計算してDBに保存する関数を呼び出す
+    await helper.incrementExperience(record);
+
     // レコードの保存が完了した後の処理
     _showSaveSuccessMessage();
   }

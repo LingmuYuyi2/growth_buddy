@@ -9,6 +9,7 @@ class DatabaseHelper {
 
   static const table = 'records';
   static const counterTable = 'counter';
+  static const experienceTable = 'keikenchi';
 
   static const columnId = 'id';
   static const columnCategory = 'category';
@@ -18,6 +19,9 @@ class DatabaseHelper {
 
   static const columnCounterId = 'id';
   static const columnCount = 'count';
+
+  static const columnExperienceId = 'id';
+  static const columnExperience = 'experience';
 
 
   DatabaseHelper._privateConstructor();
@@ -61,6 +65,14 @@ class DatabaseHelper {
       )
     ''');
     await db.insert(counterTable, {'count': 0});  // 初期値として 0 を挿入
+
+    await db.execute('''
+      CREATE TABLE $experienceTable (
+        $columnExperienceId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnExperience INTEGER NOT NULL
+      )
+    ''');
+    await db.insert(experienceTable, {'experience': 0});  // 初期値として 0 を挿入
   }
 
   Future<int> insertRecord(Record record) async {
@@ -136,5 +148,18 @@ class DatabaseHelper {
   Future<void> resetCount() async {
     Database db = await instance.database;
     await db.update(counterTable, {'count': 0}, where: 'id = ?', whereArgs: [1]);
+  }
+
+  Future<void> incrementExperience(Record record) async {
+  Database db = await instance.database;
+  int currentExperience = await getExperience();
+  await db.update(experienceTable, {'experience': currentExperience + record.effort * 10}, where: 'id = ?', whereArgs: [1]);
+  }
+
+  Future<int> getExperience() async {
+    Database db = await instance.database;
+    var x = await db.rawQuery('SELECT $columnExperience from $experienceTable WHERE id = 1');
+    int? count = Sqflite.firstIntValue(x);
+    return count ?? 0;
   }
 }
