@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   int threshold = 1;
   String apiResponse = '';
   Future<String>? apiResponseFuture;
-
+  bool isLoading = false;
   int keikenchi = 0;
 
   @override
@@ -287,7 +287,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
+        onPressed: isLoading ? null : () async {
+          setState(() {
+            isLoading = true;
+          });
           String result = await _accessAPIIfThresholdReached();  // ボタンが押されたときにAPIを呼び出す
           if (result == 'Threshold not reached') {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -298,8 +301,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           } else {
             await _loadSavedImageFile(forceUpdate: true);
           }
+          setState(() {
+            isLoading = false;
+          });
         },
-        label: const Text('変身'),
+        label: isLoading ? CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)) : const Text('変身'),
         icon: const Icon(Icons.transform),
       ),
     );
