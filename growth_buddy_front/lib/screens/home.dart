@@ -21,12 +21,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<Offset> _animation;
   File? _imageFile;
-  int threshold = 10;
+  int threshold = 1;
   String apiResponse = '';
   Future<String>? apiResponseFuture;
 
   int keikenchi = 0;
-  //関数を書く　getなんとかという関数作ってDBから経験値を取得　変数に代入
 
   @override
   void initState() {
@@ -75,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         int level = experience ~/ 150 + 1;
         int nextlevel = 150 - (experience % 150);
         return Container(
-          padding: EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10.0),
             border: Border.all(
@@ -88,21 +87,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 color: Colors.grey.withOpacity(0.5),
                 spreadRadius: 5,
                 blurRadius: 7,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Text(
             '現在のレベル: $level\n次のレベルまであと: $nextlevel',
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
             ),
           ),
         );
       } else if (snapshot.hasError) {
-        return Text('経験値の取得に失敗しました');
+        return const Text('経験値の取得に失敗しました');
       } else {
-        return Text('経験値を取得中...');
+        return const Text('経験値を取得中...');
       }
     },
   );
@@ -143,42 +142,47 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final helper = DatabaseHelper.instance;
 
     int count = await helper.getCount();
-    print(count);
+    // print(count);
     
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
-      // final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
-      final url = Uri.parse('http://127.0.0.1:8000/sample_image/');
+      final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
+      // final url = Uri.parse('http://127.0.0.1:8000/sample_image/');
       // final url = Uri.parse('http://127.0.0.1:8000/healthz/');
 
       // リクエストヘッダーの設定
       Map<String, String> headers = {'Content-Type': 'application/json'};
       // テキストの取得
-      List<String> texts = await _getTextsFromDatabase();
+      List<Map<String, dynamic>> textsAndEfforts = await _getTextsAndEffortsFromDatabase();
       // 画像の読み込み
       String image = await _getImageData();
+      // last updated
+      String lastUpdate = await _getLastUpdated();
 
       // リクエストボディの設定
       Map<String, dynamic> requestBody = {
-        'texts': texts,
+        'info': jsonEncode(textsAndEfforts),
         'image': image,
+        'position': lastUpdate,
       };
 
       // POSTリクエストの送信
       // var response = await http.get(url);
       var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
       // print(response.body);
-      print(texts);
+      // print(lastUpdate);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         var image = data['image'];
+        var lastUpdate = data['changed_position']; // backendの属性名による
     
         // return data; // return the parsed data
         var imageBytes = base64Decode(image);
         await _writeImageDataToFile(imageBytes);
         // print("finish whiteImage");
         await helper.resetCount();
+        await helper.writeLastUpdated(lastUpdate);
         return image;
       } else {
         // If that response was not OK, throw an error.
@@ -199,17 +203,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return file;
   }
 
-  Future<List<String>> _getTextsFromDatabase() async {
+  Future<String> _getLastUpdated() async {
     final helper = DatabaseHelper.instance;
-    List<String> texts = await helper.getTexts();
-    return texts;
+    String lastUpdate = await helper.getLastUpdated();
+    return lastUpdate;
+  }
+
+  Future<List<Map<String, dynamic>>> _getTextsAndEffortsFromDatabase() async {
+    final helper = DatabaseHelper.instance;
+    List<Map<String, dynamic>> textsAndEfforts = await helper.getTextsAndEffort();
+    return textsAndEfforts;
   }
 
   Future<String> _getImageData() async {
     List<int> byteList;
     if (_imageFile == null) {
       print("assets");
-      ByteData imageBytes = await rootBundle.load('assets/images/niwatori_hiyoko_koushin.png');
+      ByteData imageBytes = await rootBundle.load('assets/images/basecat.png');
       byteList = imageBytes.buffer.asUint8List();
     } else {
       print("non assets");
@@ -268,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     position: _animation,
                     // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
                     // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/niwatori_hiyoko_koushin.png', key: UniqueKey()),
+                    child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/basecat.png', key: UniqueKey()),
                   ),
                 ),
               ),

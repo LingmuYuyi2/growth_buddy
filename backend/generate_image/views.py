@@ -55,7 +55,8 @@ def remove_background(image_data_base64):
     img_no_bg.save(byte_arr, format='PNG')
     encoded_image = base64.b64encode(byte_arr.getvalue())
 
-    return encoded_image
+    encoded_image_str = encoded_image.decode('utf-8')
+    return encoded_image_str
     
 
 class MyView(APIView):
@@ -64,6 +65,7 @@ class MyView(APIView):
         
         # リクエストデータを抽出
         info_list = request.data.get('info', [])
+        info_list = eval(info_list)
         content_list = [item.get('content', '') for item in info_list]
         effort_list = [item.get('effort', 0) for item in info_list]
         position_before = request.data.get('position')
@@ -130,6 +132,6 @@ class SampleImageView(APIView):
             image_data_base64 = base64.b64encode(image_response.content).decode('utf-8')
             content_type = 'image/jpg'
 
-            return Response({'image': image_data_base64}, status=status.HTTP_200_OK, content_type=content_type)
+            return Response({'image': image_data_base64, 'updated': "1"}, status=status.HTTP_200_OK, content_type=content_type)
         else:
             return Response({'error': 'Could not retrieve image'}, status=status.HTTP_400_BAD_REQUEST)
