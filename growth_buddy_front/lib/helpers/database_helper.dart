@@ -1,7 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/record.dart';
-import '../models/counter.dart';
 
 class DatabaseHelper {
   static const _databaseName = 'my_database.db';
@@ -9,6 +8,7 @@ class DatabaseHelper {
 
   static const table = 'records';
   static const counterTable = 'counter';
+  static const lastUpdateTable = 'lastupdate';
 
   static const columnId = 'id';
   static const columnCategory = 'category';
@@ -18,6 +18,9 @@ class DatabaseHelper {
 
   static const columnCounterId = 'id';
   static const columnCount = 'count';
+
+  static const columnLastUpdateId = 'id';
+  static const columnLastUpdated = 'last_updated_id';
 
 
   DatabaseHelper._privateConstructor();
@@ -61,6 +64,16 @@ class DatabaseHelper {
       )
     ''');
     await db.insert(counterTable, {'count': 0});  // 初期値として 0 を挿入
+
+    await db.execute(
+      '''
+      CREATE TABLE $lastUpdateTable (
+        $columnLastUpdateId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnLastUpdated INTEGER NOT NULL
+      )
+    ''');
+    await db.insert(lastUpdateTable, {'last_updated_id': ""});  // 初期値として ""を挿入
+
   }
 
   Future<int> insertRecord(Record record) async {
@@ -106,18 +119,16 @@ class DatabaseHelper {
     return count ?? 0;
   }
 
-  Future<List<String>> getTexts({int? limit, String orderBy = 'id DESC'}) async {
+  Future<List<Map<String, dynamic>>> getTextsAndEffort({int? limit, String orderBy = 'id DESC'}) async {
     final db = await instance.database;
     limit ??= await getCount();
     final List<Map<String, dynamic>> maps = await db.query(
       table,
-      columns: [columnContent],
+      columns: [columnContent, columnEffort],
       limit: limit,
       orderBy: orderBy,
     );
-    return List.generate(maps.length, (i) {
-      return maps[i][columnContent] as String;
-    });
+    return maps;
   }
 
   Future<int> getCount() async {
@@ -136,5 +147,17 @@ class DatabaseHelper {
   Future<void> resetCount() async {
     Database db = await instance.database;
     await db.update(counterTable, {'count': 0}, where: 'id = ?', whereArgs: [1]);
+  }
+
+  Future<String> getLastUpdated() async {
+    Database db = await instance.database;
+    var x = await db.rawQuery('SELECT $columnLastUpdated from $lastUpdateTable WHERE id = 1');
+    String lastUpdated = Sqflite.firstIntValue(x)?.toString() ?? "";
+    return lastUpdated;
+  }
+
+  Future<void> writeLastUpdated(String lastUpdate) async {
+    Database db = await instance.database;
+    await db.update(lastUpdateTable, {'last_updated_id': lastUpdate}, where: 'id = ?', whereArgs: [1]);
   }
 }

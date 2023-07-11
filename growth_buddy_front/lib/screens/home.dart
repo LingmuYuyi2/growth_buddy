@@ -21,9 +21,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<Offset> _animation;
   File? _imageFile;
-  int threshold = 10;
+  int threshold = 1;
   String apiResponse = '';
   Future<String>? apiResponseFuture;
+
 
   @override
   void initState() {
@@ -107,31 +108,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       // リクエストヘッダーの設定
       Map<String, String> headers = {'Content-Type': 'application/json'};
       // テキストの取得
-      List<String> texts = await _getTextsFromDatabase();
+      List<Map<String, dynamic>> textsAndEfforts = await _getTextsAndEffortsFromDatabase();
       // 画像の読み込み
       String image = await _getImageData();
+      // last updated
+      String lastUpdate = await _getLastUpdated();
 
       // リクエストボディの設定
       Map<String, dynamic> requestBody = {
-        'texts': texts,
+        'info': jsonEncode(textsAndEfforts),
         'image': image,
+        'position': lastUpdate,
       };
 
       // POSTリクエストの送信
       // var response = await http.get(url);
       var response = await http.post(url, headers: headers, body: jsonEncode(requestBody));
       // print(response.body);
-      print(texts);
+      print(lastUpdate);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         var image = data['image'];
+        var lastUpdate = data['updated']; // backendの属性名による
     
         // return data; // return the parsed data
         var imageBytes = base64Decode(image);
         await _writeImageDataToFile(imageBytes);
         // print("finish whiteImage");
         await helper.resetCount();
+        await helper.writeLastUpdated(lastUpdate);
         return image;
       } else {
         // If that response was not OK, throw an error.
@@ -152,10 +158,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return file;
   }
 
-  Future<List<String>> _getTextsFromDatabase() async {
+  Future<String> _getLastUpdated() async {
     final helper = DatabaseHelper.instance;
-    List<String> texts = await helper.getTexts();
-    return texts;
+    String lastUpdate = await helper.getLastUpdated();
+    return lastUpdate;
+  }
+
+  Future<List<Map<String, dynamic>>> _getTextsAndEffortsFromDatabase() async {
+    final helper = DatabaseHelper.instance;
+    List<Map<String, dynamic>> textsAndEfforts = await helper.getTextsAndEffort();
+    return textsAndEfforts;
   }
 
   Future<String> _getImageData() async {
