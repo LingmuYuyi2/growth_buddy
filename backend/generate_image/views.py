@@ -6,15 +6,57 @@ from rest_framework.views import APIView
 import os
 import dotenv
 import openai
-import replicate
 import base64
 from io import BytesIO
+from PIL import Image
+from rembg import remove
+
 
 from .modules.get_prompt import get_position_and_prompt
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+def replace_transparency_with_color_in_memory(image_data, color=(0, 255, 0, 255)):
+
+    # バイナリデータから画像を読み込む
+    img = Image.open(image_data)
+    img = img.convert("RGBA")
+    data = img.getdata()
+
+    new_data = []
+    for item in data:
+        # change all transparent pixels to the given color
+        if item[3] == 0:
+            new_data.append(color)
+        else:
+            new_data.append(item)
+            
+    img.putdata(new_data)
+    
+    # 画像をバイナリデータとして保存する
+    byte_arr = BytesIO()
+    img.save(byte_arr, format='PNG')
+    return BytesIO(byte_arr.getvalue())
+
+def remove_background(image_data_base64):
+    # Base64形式のデータをバイナリに変換
+    image_data = base64.b64decode(image_data_base64)
+
+    # バイナリデータをPIL Imageに変換
+    img = Image.open(BytesIO(image_data))
+
+    # バックグラウンドを削除
+    img_no_bg = remove(img)
+
+    # PIL Imageをバイナリデータに変換
+    byte_arr = BytesIO()
+    img_no_bg.save(byte_arr, format='PNG')
+    encoded_image = base64.b64encode(byte_arr.getvalue())
+
+    return encoded_image
+    
 
 class MyView(APIView):
     def post(self, request, *args, **kwargs):
@@ -30,6 +72,8 @@ class MyView(APIView):
         # base64形式の画像データをバイナリにデコード
         image_bytes = base64.b64decode(image_base64)
         image = BytesIO(image_bytes)
+        
+        image = replace_transparency_with_color_in_memory(image)
         
         position, prompt = get_position_and_prompt(content_list, effort_list, position_before)
         
@@ -61,13 +105,15 @@ class MyView(APIView):
             data=data
         )
         
-        image_data_base64 = dalle2_response.json()["data"][0]['b64_json']        
+        image_data_base64 = dalle2_response.json()["data"][0]['b64_json']     
+        
+        image_data_base64 = remove_background(image_data_base64)   
         
         content_type = dalle2_response.headers.get('content-type')
 
         # レスポンスを返す
 
-        return Response({'image': image_data_base64, "changed_position": position}, status=status.HTTP_200_OK, content_type=content_type)
+        return Response({'image': image_data_base64, "changed_position": str(position)}, status=status.HTTP_200_OK, content_type=content_type)
 
 class SampleImageView(APIView):
     def post(self, request, *args, **kwargs):

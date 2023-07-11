@@ -30,7 +30,8 @@ def get_topic(text: str) -> str:
    
 
 def choice_from_dictionary(topic: str, position_before: str):
-    position_before = int(position_before)
+    if position_before:
+        position_before = int(position_before)
     
     prompt_list = TRANSFORM_PROMPT[topic]
     
