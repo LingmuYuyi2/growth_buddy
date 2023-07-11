@@ -54,8 +54,9 @@ def remove_background(image_data_base64):
     byte_arr = BytesIO()
     img_no_bg.save(byte_arr, format='PNG')
     encoded_image = base64.b64encode(byte_arr.getvalue())
+    encoded_image_str = encoded_image.decode('utf-8')
 
-    return encoded_image
+    return encoded_image_str
     
 
 class MyView(APIView):
@@ -107,7 +108,7 @@ class MyView(APIView):
         
         image_data_base64 = dalle2_response.json()["data"][0]['b64_json']     
         
-        image_data_base64 = remove_background(image_data_base64)   
+        image_data_base64 = remove_background(image_data_base64)
         
         content_type = dalle2_response.headers.get('content-type')
 
