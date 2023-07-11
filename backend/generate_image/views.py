@@ -82,7 +82,7 @@ class SampleImageView(APIView):
             image_data_base64 = base64.b64encode(image_response.content).decode('utf-8')
             content_type = 'image/jpg'
 
-            return Response({'image': image_data_base64}, status=status.HTTP_200_OK, content_type=content_type)
+            return Response({'image': image_data_base64, 'updated': "1"}, status=status.HTTP_200_OK, content_type=content_type)
         else:
             return Response({'error': 'Could not retrieve image'}, status=status.HTTP_400_BAD_REQUEST)
 
