@@ -232,59 +232,88 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<int> getExperience() async {
     final helper = DatabaseHelper.instance;
     int experience = await helper.getExperience();
-    print(experience);
+    // print(experience);
     return experience;
   }
 
-   @override
+  String getBackgroundImageForLevel(int level) {
+    if (level < 5) {
+      return 'assets/images/shibahu.jpeg';
+    } else if (level < 10) {
+      return 'assets/images/bg_moon_getsumen_earth.jpg';
+    } else {
+      return 'assets/images/bg_uchu_space.jpg';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: const Text('Home Screen'),
-
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/shibahu.jpeg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              bottom: 20.0,
-              left: 20.0,
-              child: Transform.scale(
-                scale: 1.5,
-                child: Image.asset(
-                  'assets/images/inugoya.png',
-                ),
+      body: FutureBuilder<int>(
+        future: getExperience(),
+        builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+          String imageFile;
+          if (snapshot.hasData) {
+            int experience = snapshot.data!;
+            int level = experience ~/ 150 + 1;
+            imageFile = getBackgroundImageForLevel(level);
+          } else {
+            imageFile = 'assets/images/shibahu.jpeg';
+          }
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(imageFile),
+                fit: BoxFit.cover,
               ),
             ),
-            Positioned(
-              top: 50.0,
-              left: 20.0,
-              child: _buildExperienceWidget(), // 経験値を表示するウィジェットを配置
-            ),
-             Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 80.0),
-                child: GestureDetector(
-                  onTap: startAnimation,
-                  child: SlideTransition(
-                    position: _animation,
-                    // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/basecat.png', key: UniqueKey()),
+      // body: Container(
+      //   decoration: const BoxDecoration(
+      //     image: DecorationImage(
+      //       image: AssetImage('assets/images/shibahu.jpeg'),
+      //       fit: BoxFit.cover,
+      //     ),
+      //   ),
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 20.0,
+                  left: 20.0,
+                  child: Transform.scale(
+                    scale: 1.5,
+                    child: Image.asset(
+                      'assets/images/inugoya.png',
+                    ),
                   ),
                 ),
-              ),
+                Positioned(
+                  top: 50.0,
+                  left: 20.0,
+                  child: _buildExperienceWidget(), // 経験値を表示するウィジェットを配置
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 80.0),
+                    child: GestureDetector(
+                      onTap: startAnimation,
+                      child: SlideTransition(
+                        position: _animation,
+                        // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                        // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                        child: _imageFile != null ? Image.file(_imageFile!, key: UniqueKey()) : Image.asset('assets/images/basecat.png', key: UniqueKey()),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: isLoading ? null : () async {
@@ -305,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             isLoading = false;
           });
         },
-        label: isLoading ? CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)) : const Text('変身'),
+        label: isLoading ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)) : const Text('変身'),
         icon: const Icon(Icons.transform),
       ),
     );
