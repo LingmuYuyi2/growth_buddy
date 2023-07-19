@@ -108,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 }
 
 
-
   @override
   void dispose() {
     _animationController.dispose();
@@ -218,11 +217,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<String> _getImageData() async {
     List<int> byteList;
     if (_imageFile == null) {
-      print("assets");
+      // print("assets");
       ByteData imageBytes = await rootBundle.load('assets/images/basecat.png');
       byteList = imageBytes.buffer.asUint8List();
     } else {
-      print("non assets");
+      // print("non assets");
       byteList = await _imageFile!.readAsBytes();
     }
     String base64Image = base64Encode(byteList);
@@ -271,13 +270,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 fit: BoxFit.cover,
               ),
             ),
-      // body: Container(
-      //   decoration: const BoxDecoration(
-      //     image: DecorationImage(
-      //       image: AssetImage('assets/images/shibahu.jpeg'),
-      //       fit: BoxFit.cover,
-      //     ),
-      //   ),
             child: Stack(
               children: [
                 Positioned(
