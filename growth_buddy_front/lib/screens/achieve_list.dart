@@ -122,16 +122,6 @@ class _AchieveListScreenState extends State<AchieveListScreen> {
                     ),
                   ],
                 ),
-                trailing: IconButton(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Colors.grey,
-                  ),
-                  onPressed: () async {
-                    await DatabaseHelper.instance.deleteRecord(record.id!);
-                    _updateRecordList();
-                  },
-                ),
               );
             }
           );
