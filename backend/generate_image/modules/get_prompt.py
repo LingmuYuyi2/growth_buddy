@@ -12,19 +12,25 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 def get_topic(text: str) -> str:
     openai.api_key = OPENAI_API_KEY
-    messages = [
-        {"role": "system", "content": "以下のテキストには、次の中のどのトピックが最もふさわしいか1つ答えてください。\n" + "\n".join(CATEGORY_LIST)},
-        {"role": "user", "content": text}
-    ]
-
-    # GPT APIへのリクエスト
-    gpt_response = openai.ChatCompletion.create(\
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.8,
-        )
     
-    topic = gpt_response['choices'][0]['message']['content']
+    dictionary = TRANSFORM_PROMPT
+    
+    while not isinstance(dictionary, list):
+        messages = [
+            {"role": "system", "content": "以下のテキスト群には、次の中のどのトピックが最もふさわしいか1つ答えてください。\n" + "\n".join(dictionary.keys())},
+            {"role": "user", "content": text}
+        ]
+
+        # GPT APIへのリクエスト
+        gpt_response = openai.ChatCompletion.create(\
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.8,
+            )
+        
+        topic = gpt_response['choices'][0]['message']['content']
+        
+        dictionary = dictionary[topic]
     
     return topic 
    
