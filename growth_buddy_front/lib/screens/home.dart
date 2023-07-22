@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen>
   int threshold = 1;
   String apiResponse = '';
   Future<String>? apiResponseFuture;
-
+  bool isLoading = false;
   int keikenchi = 0;
 
   @override
@@ -144,8 +144,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // レコードの総数が一定の閾値に達しているなら、APIへアクセスします。
     if (count >= threshold) {
-      // final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
-      final url = Uri.parse('http://192.168.143.190:8000/generate_image/');
+      final url = Uri.parse('http://127.0.0.1:8000/generate_image/');
       // final url = Uri.parse('http://127.0.0.1:8000/sample_image/');
       // final url = Uri.parse('http://127.0.0.1:8000/healthz/');
 
@@ -220,11 +219,11 @@ class _HomeScreenState extends State<HomeScreen>
   Future<String> _getImageData() async {
     List<int> byteList;
     if (_imageFile == null) {
-      print("assets");
+      // print("assets");
       ByteData imageBytes = await rootBundle.load('assets/images/basecat.png');
       byteList = imageBytes.buffer.asUint8List();
     } else {
-      print("non assets");
+      // print("non assets");
       byteList = await _imageFile!.readAsBytes();
     }
     String base64Image = base64Encode(byteList);
@@ -234,8 +233,18 @@ class _HomeScreenState extends State<HomeScreen>
   Future<int> getExperience() async {
     final helper = DatabaseHelper.instance;
     int experience = await helper.getExperience();
-    print(experience);
+    // print(experience);
     return experience;
+  }
+
+  String getBackgroundImageForLevel(int level) {
+    if (level < 5) {
+      return 'assets/images/shibahu.jpeg';
+    } else if (level < 10) {
+      return 'assets/images/bg_moon_getsumen_earth.jpg';
+    } else {
+      return 'assets/images/bg_uchu_space.jpg';
+    }
   }
 
   @override
@@ -245,66 +254,90 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: Colors.blue,
         title: const Text('Home Screen'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/shibahu.jpeg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              bottom: 20.0,
-              left: 20.0,
-              child: Transform.scale(
-                scale: 1.5,
-                child: Image.asset(
-                  'assets/images/inugoya.png',
-                ),
+      body: FutureBuilder<int>(
+        future: getExperience(),
+        builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+          String imageFile;
+          if (snapshot.hasData) {
+            int experience = snapshot.data!;
+            int level = experience ~/ 150 + 1;
+            imageFile = getBackgroundImageForLevel(level);
+          } else {
+            imageFile = 'assets/images/shibahu.jpeg';
+          }
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(imageFile),
+                fit: BoxFit.cover,
               ),
             ),
-            Positioned(
-              top: 50.0,
-              left: 20.0,
-              child: _buildExperienceWidget(), // 経験値を表示するウィジェットを配置
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 80.0),
-                child: GestureDetector(
-                  onTap: startAnimation,
-                  child: SlideTransition(
-                    position: _animation,
-                    // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
-                    child: _imageFile != null
-                        ? Image.file(_imageFile!, key: UniqueKey())
-                        : Image.asset('assets/images/basecat.png',
-                            key: UniqueKey()),
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 20.0,
+                  left: 20.0,
+                  child: Transform.scale(
+                    scale: 1.5,
+                    child: Image.asset(
+                      'assets/images/inugoya.png',
+                    ),
                   ),
                 ),
-              ),
+                Positioned(
+                  top: 50.0,
+                  left: 20.0,
+                  child: _buildExperienceWidget(), // 経験値を表示するウィジェットを配置
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 80.0),
+                    child: GestureDetector(
+                      onTap: startAnimation,
+                      child: SlideTransition(
+                        position: _animation,
+                        // child: Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                        // child: _imageFile != null ? Image.file(_imageFile!) : Image.asset('assets/images/niwatori_hiyoko_koushin.png'),
+                        child: _imageFile != null
+                            ? Image.file(_imageFile!, key: UniqueKey())
+                            : Image.asset('assets/images/basecat.png',
+                                key: UniqueKey()),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          String result =
-              await _accessAPIIfThresholdReached(); // ボタンが押されたときにAPIを呼び出す
-          if (result == 'Threshold not reached') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('まだ変身できないようです...'),
-              ),
-            );
-          } else {
-            await _loadSavedImageFile(forceUpdate: true);
-          }
-        },
-        label: const Text('変身'),
+        onPressed: isLoading
+            ? null
+            : () async {
+                setState(() {
+                  isLoading = true;
+                });
+                String result =
+                    await _accessAPIIfThresholdReached(); // ボタンが押されたときにAPIを呼び出す
+                if (result == 'Threshold not reached') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('まだ変身できないようです...'),
+                    ),
+                  );
+                } else {
+                  await _loadSavedImageFile(forceUpdate: true);
+                }
+                setState(() {
+                  isLoading = false;
+                });
+              },
+        label: isLoading
+            ? const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+            : const Text('変身'),
         icon: const Icon(Icons.transform),
       ),
     );
