@@ -20,31 +20,38 @@ TRANSFORM_PROMPT = {
         (2, "a cat with a pencil")
     ],
     "hobby": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+
+    
     ],
     "housework": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+
     ],
     "labor": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+        
     ],
-    "exercise": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
-    ],
+    "exercise": {
+        "soccer": [
+            (2, "a cat with soccer ball"),
+            (3, "a cat with soccer ball"),
+            (4, "a cat with soccer uniform")
+        ],
+        "base ball": [
+            (0, "a cat with base ball cap"),
+        ],
+        "volley-ball": [
+            
+        ],
+        "swimming": [
+            
+        ],
+    },
     "job hunting": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+
     ],
     "lifestyle": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+
     ],
     "other": [
-        (0, "a cat with an academic cap"),
-        (2, "a cat with a pencil")
+
     ]
 }
