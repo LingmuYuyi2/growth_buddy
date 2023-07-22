@@ -8,23 +8,29 @@ import random
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
-API_KEY_GPT = os.environ.get("API_KEY_GPT")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 def get_topic(text: str) -> str:
-    openai.api_key = API_KEY_GPT
-    messages = [
-        {"role": "system", "content": "以下のテキストには、次の中のどのトピックが最もふさわしいか1つ答えてください。\n" + "\n".join(CATEGORY_LIST)},
-        {"role": "user", "content": text}
-    ]
-
-    # GPT APIへのリクエスト
-    gpt_response = openai.ChatCompletion.create(\
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.8,
-        )
+    openai.api_key = OPENAI_API_KEY
     
-    topic = gpt_response['choices'][0]['message']['content']
+    dictionary = TRANSFORM_PROMPT
+    
+    while not isinstance(dictionary, list):
+        messages = [
+            {"role": "system", "content": "以下のテキスト群には、次の中のどのトピックが最もふさわしいか1つ答えてください。\n" + "\n".join(dictionary.keys())},
+            {"role": "user", "content": text}
+        ]
+
+        # GPT APIへのリクエスト
+        gpt_response = openai.ChatCompletion.create(\
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.8,
+            )
+        
+        topic = gpt_response['choices'][0]['message']['content']
+        
+        dictionary = dictionary[topic]
     
     return topic 
    
@@ -43,7 +49,7 @@ def choice_from_dictionary(topic: str, position_before: str):
 def choice_text(text_list: List[str], endurance_list: List[int]) -> str:
     l = []
     for i, endurance in enumerate(endurance_list):
-        l.extend([i] * int(endurance))
+        l.extend([i] * int(float(endurance)))
     
     choice = random.choice(l)
     
