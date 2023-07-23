@@ -34,8 +34,28 @@ def get_topic(text: str) -> str:
     
     return topic 
    
-
 def choice_from_dictionary(topic: str, position_before: str):
+    if position_before:
+        position_before = int(position_before)
+    
+    if (topic in TRANSFORM_PROMPT.keys()):
+        prompt_list = TRANSFORM_PROMPT[topic]
+    elif (topic in TRANSFORM_PROMPT["music"].keys()):
+        prompt_list = TRANSFORM_PROMPT["music"][topic]
+    elif (topic in TRANSFORM_PROMPT["exercise"].keys()):
+        prompt_list = TRANSFORM_PROMPT["exercise"][topic]
+    elif (topic in TRANSFORM_PROMPT["housework"].keys()):
+        prompt_list = TRANSFORM_PROMPT["housework"][topic]
+    elif (topic in TRANSFORM_PROMPT["labor"].keys()):
+        prompt_list = TRANSFORM_PROMPT["labor"][topic]
+    elif (topic in TRANSFORM_PROMPT["lifestyle"].keys()):
+        prompt_list = TRANSFORM_PROMPT["lifestyle"][topic]
+    
+    prompt_diff_from_bef_pos = [pos_prompt for pos_prompt in prompt_list if pos_prompt[0] != position_before]
+    
+    return random.choice(prompt_diff_from_bef_pos)
+
+"""def choice_from_dictionary(topic: str, position_before: str):
     if position_before:
         position_before = int(position_before)
     
@@ -43,8 +63,7 @@ def choice_from_dictionary(topic: str, position_before: str):
     
     prompt_diff_from_bef_pos = [pos_prompt for pos_prompt in prompt_list if pos_prompt[0] != position_before]
     
-    
-    return random.choice(prompt_diff_from_bef_pos)
+    return random.choice(prompt_diff_from_bef_pos)"""
 
 def choice_text(text_list: List[str], endurance_list: List[int]) -> str:
     l = []

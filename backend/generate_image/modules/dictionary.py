@@ -18,16 +18,16 @@ TRANSFORM_PROMPT = {
     "study": [
         (0, "a cat with an academic cap"),
         (1, "a cat with glasses"),
-        (1, "a cat with sharp eyes"),
+        (1, "a cat with sharp eyes"), # a cat with wise eyes
         (2, "a cat with a pencil"),
         (3, "a cat with a pencil"),
         (2, "a cat with an eraser"),
         (3, "a cat with an eraser"),
         (2, "a cat with a book"),
         (3, "a cat with a book"),
-        (2, "a cat with a laptop"),
-        (3, "a cat with a laptop"),
-        (4, "a cat with student wear")
+        (2, "a cat with a personal computer in his hand"),
+        (3, "a cat with a personal computer in his hand"),
+        (4, "a cat in school uniform")
     ],
     "reserch": [
         (0, "a cat with an academic cap"),
@@ -36,15 +36,15 @@ TRANSFORM_PROMPT = {
         (1, "a cat with sharp eyes"),
         (2, "a cat with a book"),
         (3, "a cat with a book"),
-        (2, "a cat with a laptop"),
-        (3, "a cat with a laptop"),
-        (2, "a cat with a flask"),
-        (3, "a cat with a flask"),
+        (2, "a cat with a personal computer in his hand"),
+        (3, "a cat with a personal computer in his hand"),
+        (2, "a cat with a conical flask in his hand"),
+        (3, "a cat with a conical flask in his hand"),
         (4, "a cat in doctor's white robe")
     ],
     "music": {
         "guitar": [
-            (0, "a cat with a Mohawk"),
+            (0, "a cat with mohawk"),
             (1, "a cat with sun glasses"),
             (2, "a cat with a guitar"),
             (3, "a cat with a guitar"),
@@ -53,13 +53,13 @@ TRANSFORM_PROMPT = {
             (4, "a cat in rock costume") # pianist's suit
         ],
         "piano": [
-            (2, "a cat with a piano"),
-            (3, "a cat with a piano"),
+            #(2, "a cat with a piano"),
+            #(3, "a cat with a piano"),
             (2, "a cat with musical note"), # musical symbol
             (3, "a cat with musical note"),
             (4, "a cat in tuxedo") # pianist's suit
         ],
-        "other": [
+        "other music": [
             (2, "a cat with musical note"), # musical symbol
             (3, "a cat with musical note"),
         ]
@@ -68,12 +68,12 @@ TRANSFORM_PROMPT = {
         "soccer": [
             (2, "a cat with soccer ball"),
             (3, "a cat with soccer ball"),
-            (4, "a cat with soccer uniform")
+            (4, "a cat in soccer uniform")
         ],
         "baseball": [
             (0, "a cat with base ball cap"),
-            (2, "a cat with baseball globe"),
-            (3, "a cat with baseball globe"),
+            #(2, "a cat with baseball globe"),
+            #(3, "a cat with baseball globe"),
             (2, "a cat with baseball ball"),
             (3, "a cat with baseball ball"),
             (2, "a cat with baseball bat"),
@@ -83,11 +83,17 @@ TRANSFORM_PROMPT = {
         "volleyball": [
             (2, "a cat with volleyball ball"),
             (3, "a cat with volleyball ball"),
+            (4, "a cat in volleyball uniform"),
+        ],
+        "basketball": [
+            (2, "a cat with basketball ball"),
+            (3, "a cat with basketball ball"),
+            (4, "a cat in basketball uniform"),
         ],
         "swimming": [
             (1, "a cat wearing swimming goggles"),
-            (2, "a cat with beat board"),
-            (3, "a cat with beat board"),
+            (2, "a cat with surfboard"),
+            (3, "a cat with surfboard"),
             (4, "a cat in swimsuit")
         ],
         "bicycle": [
@@ -95,10 +101,8 @@ TRANSFORM_PROMPT = {
             (3, "a cat with bicycle"),
             (4, "a cat in cycling suit")
         ],
-        "other": [
+        "other exercise": [
             (1, "a cat with strong look"),
-            (2, "a cat with protein"),
-            (3, "a cat with protein"),
             (2, "a cat with dumbbell"),
             (3, "a cat with dumbbell"),
             (4, "a muscular cat"),
@@ -109,11 +113,11 @@ TRANSFORM_PROMPT = {
         (0, "a cat with mario's cap"),
         (2, "a cat with game console"),
         (3, "a cat with game console"),
-        (4, "a cat in mario's wear")
+        (4, "a cat in mario's overall")
     ],
     "housework": {
         "cooking": [
-            (0, "a cat with sling"),
+            #(0, "a cat in a triangle bandage"),
             (2, "a cat with ladle"),
             (3, "a cat with ladle"),
             (2, "a cat with kitchen knife"),
@@ -125,7 +129,7 @@ TRANSFORM_PROMPT = {
             (4, "a cat in cooking apron")
         ],
         "cleaning": [
-            (0, "a cat with sling"),
+            #(0, "a cat in a triangle bandage"),
             (1, "a cat wearing mask"),
             (2, "a cat with vacuum cleaner"),
             (3, "a cat with vacuum cleaner"),
@@ -134,12 +138,14 @@ TRANSFORM_PROMPT = {
             (2, "a cat with broom"),
             (3, "a cat with broom"),
         ],
-        "laundry": [
+
+        """"laundry": [
             (2, "a cat with tarai"),
             (3, "a cat with tarai"),
             (2, "a cat with washboard"),
             (3, "a cat with washboard"),
-        ],
+        ],"""
+
         "gardening": [
             (0, "a cat with straw hat"),
             (2, "a cat with shovel"),
@@ -148,15 +154,16 @@ TRANSFORM_PROMPT = {
             (3, "a cat with vegetable"),
             (4, "a cat with rubber boots")
         ],
-        "other": [
+        "other housework": [
+            (1, "a smile cat"),
             (4, "a cat in apron")
         ]
     },
     "labor": {
         "desk work": [
             (1, "a cat with glasses"),
-            (2, "a cat with laptop"),
-            (3, "a cat with laptop"),
+            (2, "a cat with a personal computer in his hand"),
+            (3, "a cat with a personal computer in his hand"),
             (4, "a cat in business suit")
         ],
         "physical work": [
@@ -187,11 +194,13 @@ TRANSFORM_PROMPT = {
             (3, "a cat with spoon"),
             (2, "a cat with chopsticks"),
             (3, "a cat with chopsticks"),
-            (2, "a cat with cuisine"),
-            (3, "a cat with cuisine"),
+            (2, "a cat with rice bowl"), #cuisine
+            (3, "a cat with rice bowl"),
         ],
-        "other": [
-            (1, "a healthy-looking cat")
+        "other lifestyle": [
+            (1, "a healthy-looking cat"),
+            (2, "a cat giving a thumbs up"),
+            (3, "a cat giving a thumbs up"),
         ]
     },
     "other": [
